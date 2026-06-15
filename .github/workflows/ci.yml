@@ -86,8 +86,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install PostgreSQL 18
-        run: winget install --id PostgreSQL.PostgreSQL.18 --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
+      # EDB's binaries zip (headers + postgres.lib, no installer) — deterministic
+      # and fast, unlike running the flaky EDB silent installer via winget/choco.
+      # Bump this URL when targeting a newer PG 18 patch release.
+      - name: Fetch PostgreSQL 18 binaries
+        shell: pwsh
+        run: |
+          $url = 'https://get.enterprisedb.com/postgresql/postgresql-18.4-1-windows-x64-binaries.zip'
+          Invoke-WebRequest -Uri $url -OutFile pg.zip -MaximumRedirection 10
+          Expand-Archive pg.zip -DestinationPath pg -Force
+          "PGROOT=$PWD\pg\pgsql" >> $env:GITHUB_ENV
 
       - name: Set up MSVC (x64)
         uses: ilammy/msvc-dev-cmd@v1
@@ -97,7 +105,7 @@ jobs:
       - name: Build extension DLL
         shell: pwsh
         run: |
-          $R = 'C:\Program Files\PostgreSQL\18'
+          $R = $env:PGROOT
           New-Item -ItemType Directory -Force build_win | Out-Null
           cl /nologo /O2 /MD /utf-8 /D_CRT_SECURE_NO_WARNINGS /wd4005 `
             /I src `
