@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install PostgreSQL 18
-        run: winget install --id PostgreSQL.PostgreSQL.18 --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
+        run: winget install --id PostgreSQL.PostgreSQL.18 --silent --no-progress --accept-package-agreements --accept-source-agreements --disable-interactivity
 
       - name: Set up MSVC (x64)
         uses: ilammy/msvc-dev-cmd@v1
