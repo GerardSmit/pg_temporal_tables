@@ -7,17 +7,34 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        pg: [18]
+        include:
+          - pg: 18
+            runner: ubuntu-latest
+            os: linux
+            arch: amd64
+          - pg: 18
+            runner: ubuntu-24.04-arm
+            os: linux
+            arch: arm64
+          - pg: 18
+            runner: macos-26-intel
+            os: darwin
+            arch: amd64
+          - pg: 18
+            runner: macos-26
+            os: darwin
+            arch: arm64
     env:
       PG_TEMPORAL_PG_VERSION: ${{ matrix.pg }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install PostgreSQL ${{ matrix.pg }} dev headers
+      - name: Install PostgreSQL ${{ matrix.pg }} dev headers (Linux)
+        if: matrix.os == 'linux'
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
@@ -26,24 +43,145 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-server-dev-${{ matrix.pg }} build-essential
+          echo "PG_CONFIG=/usr/lib/postgresql/${{ matrix.pg }}/bin/pg_config" >> "$GITHUB_ENV"
+
+      - name: Install PostgreSQL ${{ matrix.pg }} dev headers (macOS)
+        if: matrix.os == 'darwin'
+        run: |
+          brew install postgresql@${{ matrix.pg }}
+          echo "PG_CONFIG=$(brew --prefix postgresql@${{ matrix.pg }})/bin/pg_config" >> "$GITHUB_ENV"
+          # The Homebrew PG bottle bakes in the SDK it was built against
+          # (e.g. MacOSX14.sdk), which may not exist on the runner's Xcode.
+          # Override PGXS's PG_SYSROOT with the runner's current SDK.
+          echo "PG_SYSROOT=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
 
       - name: Build (host smoke build)
-        run: make -j"$(nproc)" PG_CONFIG=/usr/lib/postgresql/${{ matrix.pg }}/bin/pg_config
+        run: make -j"$(getconf _NPROCESSORS_ONLN)" PG_CONFIG="$PG_CONFIG" PG_SYSROOT="$PG_SYSROOT"
 
       - name: Stage release tarball
         run: |
-          make install PG_CONFIG=/usr/lib/postgresql/${{ matrix.pg }}/bin/pg_config DESTDIR="$PWD/stage"
+          make install PG_CONFIG="$PG_CONFIG" PG_SYSROOT="$PG_SYSROOT" DESTDIR="$PWD/stage"
           VERSION=$(sed -n "s/^default_version *= *'\(.*\)'/\1/p" pg_temporal_tables.control)
-          tar -czf "pg_temporal_tables-${VERSION}-pg${{ matrix.pg }}-linux-amd64.tar.gz" -C stage .
+          tar -czf "pg_temporal_tables-${VERSION}-pg${{ matrix.pg }}-${{ matrix.os }}-${{ matrix.arch }}.tar.gz" -C stage .
 
       - uses: actions/upload-artifact@v4
         with:
-          name: pg_temporal_tables-pg${{ matrix.pg }}
-          path: pg_temporal_tables-*-pg${{ matrix.pg }}-linux-amd64.tar.gz
+          name: pg_temporal_tables-pg${{ matrix.pg }}-${{ matrix.os }}-${{ matrix.arch }}
+          path: pg_temporal_tables-*-pg${{ matrix.pg }}-${{ matrix.os }}-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
 
+      # Tests use Testcontainers (Docker); GitHub macOS runners have no Docker
+      # daemon, so the .NET suite runs on the Linux legs only.
       - uses: actions/setup-dotnet@v4
+        if: matrix.os == 'linux'
         with:
           dotnet-version: 10.0.x
 
       - name: Run tests
+        if: matrix.os == 'linux'
         run: dotnet test tests/pg_temporal_tables.sln -c Release
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # EDB's binaries zip (headers + postgres.lib, no installer) — deterministic
+      # and fast, unlike running the flaky EDB silent installer via winget/choco.
+      # Bump this URL when targeting a newer PG 18 patch release.
+      - name: Fetch PostgreSQL 18 binaries
+        shell: pwsh
+        run: |
+          $url = 'https://get.enterprisedb.com/postgresql/postgresql-18.4-1-windows-x64-binaries.zip'
+          Invoke-WebRequest -Uri $url -OutFile pg.zip -MaximumRedirection 10
+          Expand-Archive pg.zip -DestinationPath pg -Force
+          "PGROOT=$PWD\pg\pgsql" >> $env:GITHUB_ENV
+
+      - name: Set up MSVC (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build extension DLL
+        shell: pwsh
+        run: |
+          $R = $env:PGROOT
+          New-Item -ItemType Directory -Force build_win | Out-Null
+          cl /nologo /O2 /MD /utf-8 /D_CRT_SECURE_NO_WARNINGS /wd4005 `
+            /I src `
+            /I "$R\include\server\port\win32_msvc" `
+            /I "$R\include\server\port\win32" `
+            /I "$R\include\server\port" `
+            /I "$R\include\server" `
+            /I "$R\include" `
+            src\pg_temporal_tables.c src\temporal_catalog.c src\temporal_trigger.c src\temporal_hooks.c `
+            /Fo:build_win\ /LD /Fe:build_win\pg_temporal_tables.dll `
+            /link /LIBPATH:"$R\lib" postgres.lib
+          if (-not (Test-Path build_win\pg_temporal_tables.dll)) { throw 'DLL build failed' }
+
+      - name: Package release zip
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pg_temporal_tables.control -Pattern "^default_version\s*=\s*'(.+)'").Matches[0].Groups[1].Value
+          $stage = 'stage_win'
+          New-Item -ItemType Directory -Force "$stage\lib" | Out-Null
+          New-Item -ItemType Directory -Force "$stage\share\extension" | Out-Null
+          Copy-Item build_win\pg_temporal_tables.dll      "$stage\lib\"
+          Copy-Item pg_temporal_tables.control            "$stage\share\extension\"
+          Copy-Item sql\pg_temporal_tables--$version.sql  "$stage\share\extension\"
+          $zip = "pg_temporal_tables-$version-pg18-windows-amd64.zip"
+          Compress-Archive -Path "$stage\*" -DestinationPath $zip -Force
+          Write-Output "ZIP=$zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pg_temporal_tables-pg18-windows-amd64
+          path: pg_temporal_tables-*-pg18-windows-amd64.zip
+          if-no-files-found: error
+
+  release:
+    needs: [build-and-test, build-windows]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: version
+        name: Resolve version from pg_temporal_tables.control
+        run: |
+          v=$(sed -n "s/^default_version *= *'\(.*\)'/\1/p" pg_temporal_tables.control)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "tag=v$v" >> "$GITHUB_OUTPUT"
+
+      - id: tag_check
+        name: Check whether tag already exists
+        run: |
+          if git rev-parse "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${{ steps.version.outputs.tag }} already exists - skipping release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.tag_check.outputs.exists == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: pg_temporal_tables-pg*
+          merge-multiple: true
+
+      - if: steps.tag_check.outputs.exists == 'false'
+        name: Create tag + GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "pg_temporal_tables ${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            artifacts/*.tar.gz artifacts/*.zip

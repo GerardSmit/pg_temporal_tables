@@ -14,12 +14,14 @@ namespace PgTemporalTables.EntityFrameworkCore.Infrastructure;
 /// </summary>
 public sealed class PgTemporalQueryExpressionInterceptor : IQueryExpressionInterceptor
 {
+    /// <summary>The singleton instance of this interceptor.</summary>
     public static readonly PgTemporalQueryExpressionInterceptor Instance = new();
 
     private PgTemporalQueryExpressionInterceptor()
     {
     }
 
+    /// <inheritdoc/>
     public Expression QueryCompilationStarting(Expression queryExpression,
         QueryExpressionEventData eventData)
         => Rewriter.Instance.Visit(queryExpression);

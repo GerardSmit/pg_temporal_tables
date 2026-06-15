@@ -330,7 +330,7 @@ public sealed class AsOfRewriteTests
         await ExecAsync(conn, "UPDATE items SET name = 'gadget' WHERE id = 1");
 
         // Time-travel must work even though a column was dropped before enable
-        await SetAsOfAsync(conn, m1);
+        await SetAsOfAsync(conn, m1!);
 
         var name = await ScalarAsync<string>(conn, "SELECT name FROM items WHERE id = 1");
         Assert.Equal("widget", name);

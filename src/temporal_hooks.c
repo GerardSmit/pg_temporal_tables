@@ -75,7 +75,7 @@ rte_is_tracked_relation(RangeTblEntry *rte)
 static RangeTblEntry *
 rte_at_index(Query *query, Index rtindex)
 {
-	if (rtindex == 0 || rtindex > list_length(query->rtable))
+	if (rtindex == 0 || rtindex > (Index) list_length(query->rtable))
 		return NULL;
 	return (RangeTblEntry *) list_nth(query->rtable, rtindex - 1);
 }
@@ -597,6 +597,9 @@ static PlannedStmt *
 temporal_planner(Query *parse, const char *query_string, int cursorOptions,
 				 ParamListInfo boundParams)
 {
+	/* volatile: reassigned inside PG_TRY and read after it (avoid clobber) */
+	Query *volatile rewritten = parse;
+
 	if (!in_temporal_planner &&
 		IsTransactionState() &&
 		!temporal_in_internal_write)
@@ -612,7 +615,7 @@ temporal_planner(Query *parse, const char *query_string, int cursorOptions,
 			ctx.funcoid = as_of_marker_funcoid();
 			ctx.boundParams = boundParams;
 			if (OidIsValid(ctx.funcoid))
-				parse = (Query *) marker_mutator((Node *) parse, &ctx);
+				rewritten = (Query *) marker_mutator((Node *) rewritten, &ctx);
 
 			if (ctx.found)
 			{
@@ -623,7 +626,7 @@ temporal_planner(Query *parse, const char *query_string, int cursorOptions,
 				active = get_as_of(&as_of);
 
 			if (active)
-				rewrite_query_for_as_of(parse, as_of);
+				rewrite_query_for_as_of(rewritten, as_of);
 		}
 		PG_FINALLY();
 		{
@@ -633,8 +636,8 @@ temporal_planner(Query *parse, const char *query_string, int cursorOptions,
 	}
 
 	if (prev_planner_hook)
-		return prev_planner_hook(parse, query_string, cursorOptions, boundParams);
-	return standard_planner(parse, query_string, cursorOptions, boundParams);
+		return prev_planner_hook(rewritten, query_string, cursorOptions, boundParams);
+	return standard_planner(rewritten, query_string, cursorOptions, boundParams);
 }
 
 /*

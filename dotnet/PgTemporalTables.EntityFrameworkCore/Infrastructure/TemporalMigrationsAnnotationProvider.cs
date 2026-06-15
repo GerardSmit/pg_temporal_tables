@@ -12,11 +12,13 @@ namespace PgTemporalTables.EntityFrameworkCore.Infrastructure;
 /// </summary>
 public class TemporalMigrationsAnnotationProvider : MigrationsAnnotationProvider
 {
+    /// <summary>Initializes a new instance with the given migrations annotation provider dependencies.</summary>
     public TemporalMigrationsAnnotationProvider(MigrationsAnnotationProviderDependencies dependencies)
         : base(dependencies)
     {
     }
 
+    /// <inheritdoc/>
     public override IEnumerable<IAnnotation> ForRemove(ITable table)
     {
         foreach (var annotation in base.ForRemove(table))

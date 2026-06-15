@@ -11,7 +11,7 @@ public static class PgTemporal
     /// Query-level time travel marker, translated to
     /// <c>temporal.as_of('...')</c>: the planner removes it and the WHOLE
     /// statement (all joined tracked tables) reads the given UTC moment.
-    /// Usually applied via <see cref="PgTemporalQueryableExtensions.TemporalAsOf{TEntity}"/>,
+    /// Usually applied via <see cref="PgTemporalQueryableExtensions.TemporalAsOf{TEntity}(IQueryable{TEntity}, DateTime)"/>,
     /// but composes anywhere: <c>.Where(u =&gt; u.Active &amp;&amp; PgTemporal.AsOf(t))</c>.
     /// </summary>
     public static bool AsOf(DateTime utcPointInTime)

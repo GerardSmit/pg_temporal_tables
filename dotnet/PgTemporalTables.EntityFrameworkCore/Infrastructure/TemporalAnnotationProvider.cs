@@ -16,11 +16,13 @@ namespace PgTemporalTables.EntityFrameworkCore.Infrastructure;
 #pragma warning disable EF1001
 public class TemporalAnnotationProvider : NpgsqlAnnotationProvider
 {
+    /// <summary>Initializes a new instance with the given relational annotation provider dependencies.</summary>
     public TemporalAnnotationProvider(RelationalAnnotationProviderDependencies dependencies)
         : base(dependencies)
     {
     }
 
+    /// <inheritdoc/>
     public override IEnumerable<IAnnotation> For(ITable table, bool designTime)
     {
         foreach (var annotation in base.For(table, designTime))

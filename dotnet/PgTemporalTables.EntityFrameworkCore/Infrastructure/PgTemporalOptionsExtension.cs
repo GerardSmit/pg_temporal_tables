@@ -13,15 +13,19 @@ public class PgTemporalOptionsExtension : IDbContextOptionsExtension
 {
     private DbContextOptionsExtensionInfo? _info;
 
+    /// <summary>Gets the factory used to resolve the current user identifier from a <see cref="DbContext"/>.</summary>
     public Func<DbContext, string?>? UserIdProvider { get; private set; }
 
+    /// <summary>Initializes a new default instance of <see cref="PgTemporalOptionsExtension"/>.</summary>
     public PgTemporalOptionsExtension()
     {
     }
 
+    /// <summary>Initializes a new instance by copying settings from an existing extension.</summary>
     protected PgTemporalOptionsExtension(PgTemporalOptionsExtension copyFrom)
         => UserIdProvider = copyFrom.UserIdProvider;
 
+    /// <summary>Returns a cloned extension with the user-id provider replaced by <paramref name="provider"/>.</summary>
     public virtual PgTemporalOptionsExtension WithUserIdProvider(Func<DbContext, string?> provider)
     {
         var clone = Clone();
@@ -29,14 +33,18 @@ public class PgTemporalOptionsExtension : IDbContextOptionsExtension
         return clone;
     }
 
+    /// <inheritdoc/>
     protected virtual PgTemporalOptionsExtension Clone() => new(this);
 
+    /// <inheritdoc/>
     public DbContextOptionsExtensionInfo Info => _info ??= new ExtensionInfo(this);
 
+    /// <inheritdoc/>
     public void ApplyServices(IServiceCollection services)
     {
     }
 
+    /// <inheritdoc/>
     public void Validate(IDbContextOptions options)
     {
     }

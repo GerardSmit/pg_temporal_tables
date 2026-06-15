@@ -17,6 +17,7 @@ namespace PgTemporalTables.EntityFrameworkCore.Infrastructure;
 public class TemporalMigrationsSqlGenerator : NpgsqlMigrationsSqlGenerator
 {
 #pragma warning disable EF1001
+    /// <summary>Initializes a new instance with the given migrations SQL generator dependencies and Npgsql options.</summary>
     public TemporalMigrationsSqlGenerator(
         MigrationsSqlGeneratorDependencies dependencies,
         INpgsqlSingletonOptions npgsqlSingletonOptions)
@@ -25,6 +26,7 @@ public class TemporalMigrationsSqlGenerator : NpgsqlMigrationsSqlGenerator
     }
 #pragma warning restore EF1001
 
+    /// <inheritdoc/>
     protected override void Generate(CreateTableOperation operation, IModel? model,
         MigrationCommandListBuilder builder, bool terminate = true)
     {
@@ -39,6 +41,7 @@ public class TemporalMigrationsSqlGenerator : NpgsqlMigrationsSqlGenerator
         }
     }
 
+    /// <inheritdoc/>
     protected override void Generate(DropTableOperation operation, IModel? model,
         MigrationCommandListBuilder builder, bool terminate = true)
     {
@@ -55,6 +58,7 @@ public class TemporalMigrationsSqlGenerator : NpgsqlMigrationsSqlGenerator
         base.Generate(operation, model, builder, terminate);
     }
 
+    /// <inheritdoc/>
     protected override void Generate(AlterTableOperation operation, IModel? model,
         MigrationCommandListBuilder builder)
     {
