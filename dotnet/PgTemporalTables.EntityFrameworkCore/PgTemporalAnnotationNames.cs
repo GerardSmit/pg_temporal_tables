@@ -6,6 +6,7 @@ namespace PgTemporalTables.EntityFrameworkCore;
 /// </summary>
 public static class PgTemporalAnnotationNames
 {
+    /// <summary>Common prefix for all PgTemporal annotation keys.</summary>
     public const string Prefix = "PgTemporal:";
 
     /// <summary>bool — the table is tracked by pg_temporal_tables.</summary>

@@ -20,7 +20,7 @@ public sealed record TemporalTableStats(
     decimal? AvgChainLength);
 
 /// <summary>
-/// A change event from <see cref="TemporalMaintenance{TEntity}.GetChangesAsync"/>.
+/// A change event from <see cref="TemporalMaintenance{TEntity}.GetChangesAsync(DateTimeOffset, DateTimeOffset, object[], CancellationToken)"/>.
 /// <see cref="Pk"/>, <see cref="OldRow"/> and <see cref="NewRow"/> are JSON text
 /// (parse with System.Text.Json if needed).
 /// </summary>
@@ -92,6 +92,12 @@ public sealed class TemporalMaintenance<TEntity>
 
     internal TemporalMaintenance(DbContext context) => _context = context;
 
+    // EF1002 suppressed for the calls below: the only interpolated value is
+    // Regclass(), built from the EF model's own schema/table identifiers and
+    // double-quote-escaped (see Regclass()/Quote()); every caller-supplied
+    // value flows through the {0}/{1} placeholders as real SQL parameters.
+#pragma warning disable EF1002
+
     /// <summary>Merge redundant adjacent history versions (e.g. after dropping a column).</summary>
     public Task CompactHistoryAsync(CancellationToken cancellationToken = default)
         => _context.Database.ExecuteSqlRawAsync(
@@ -137,6 +143,8 @@ public sealed class TemporalMaintenance<TEntity>
     /// <inheritdoc cref="RestoreDeletedAsync(object[], CancellationToken)"/>
     public Task RestoreDeletedAsync(object key, CancellationToken cancellationToken = default)
         => RestoreDeletedAsync(new[] { key }, cancellationToken);
+
+#pragma warning restore EF1002
 
     /// <summary>Row/version counts and storage sizes for the tracked table.</summary>
     public async Task<TemporalTableStats> GetStatsAsync(CancellationToken cancellationToken = default)

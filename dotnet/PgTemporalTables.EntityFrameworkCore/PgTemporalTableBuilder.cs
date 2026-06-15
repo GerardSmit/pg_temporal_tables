@@ -60,8 +60,8 @@ public class PgTemporalTableBuilder
 
     /// <summary>
     /// Add a stable <c>temporal_row_id</c> lineage column so a row's history
-    /// survives primary-key changes (a <see cref="TrackLineageProperty"/> shadow
-    /// property is exposed). Off by default.
+    /// survives primary-key changes (a <c>TemporalRowId</c> shadow property is
+    /// exposed). Off by default.
     /// </summary>
     public PgTemporalTableBuilder TrackLineage(bool track = true)
     {
@@ -129,48 +129,56 @@ public class PgTemporalTableBuilder<TEntity> : PgTemporalTableBuilder
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.ExcludeColumns(string[])"/>
     public new PgTemporalTableBuilder<TEntity> ExcludeColumns(params string[] propertyOrColumnNames)
     {
         base.ExcludeColumns(propertyOrColumnNames);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.CombineInterval(TimeSpan)"/>
     public new PgTemporalTableBuilder<TEntity> CombineInterval(TimeSpan interval)
     {
         base.CombineInterval(interval);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.IncludeIndexes(bool)"/>
     public new PgTemporalTableBuilder<TEntity> IncludeIndexes(bool include = true)
     {
         base.IncludeIndexes(include);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.UseHistoryTable(string)"/>
     public new PgTemporalTableBuilder<TEntity> UseHistoryTable(string name)
     {
         base.UseHistoryTable(name);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.TrackLineage(bool)"/>
     public new PgTemporalTableBuilder<TEntity> TrackLineage(bool track = true)
     {
         base.TrackLineage(track);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.HistoryCompression(string)"/>
     public new PgTemporalTableBuilder<TEntity> HistoryCompression(string method)
     {
         base.HistoryCompression(method);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.WithRetentionPolicy(TimeSpan, TimeSpan?)"/>
     public new PgTemporalTableBuilder<TEntity> WithRetentionPolicy(TimeSpan dropAfter, TimeSpan? runEvery = null)
     {
         base.WithRetentionPolicy(dropAfter, runEvery);
         return this;
     }
 
+    /// <inheritdoc cref="PgTemporalTableBuilder.WithCompactionPolicy(TimeSpan?)"/>
     public new PgTemporalTableBuilder<TEntity> WithCompactionPolicy(TimeSpan? runEvery = null)
     {
         base.WithCompactionPolicy(runEvery);

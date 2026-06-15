@@ -395,7 +395,7 @@ temporal_compact_history(PG_FUNCTION_ARGS)
 	TemporalTableEntry *entry;
 	bool		saved_flag;
 	int			rc;
-	int64		deleted = 0;
+	volatile int64 deleted = 0;	/* modified in PG_TRY, read after: avoid clobber */
 	Oid			argtypes[1] = {REGCLASSOID};
 	Datum		values[1];
 

@@ -76,9 +76,16 @@ public static class PgTemporalDbSetExtensions
         // The versions view exposes all entity columns plus valid_from /
         // changed_by (mapped as shadow properties) and valid_to / deleted_by /
         // is_current (unmapped, ignored by the materializer).
+        //
+        // EF1002 suppressed: the only interpolated value is `view`, built from
+        // the EF model's own schema/table identifiers and double-quote-escaped
+        // above; `whereClause` is a compile-time constant from this file. All
+        // caller-supplied values flow through `parameters` as real SQL params.
+#pragma warning disable EF1002
         return set
             .FromSqlRaw($"SELECT * FROM {view} {whereClause}", parameters)
             .AsNoTracking();
+#pragma warning restore EF1002
     }
 
     private static DateTime Utc(DateTime value)

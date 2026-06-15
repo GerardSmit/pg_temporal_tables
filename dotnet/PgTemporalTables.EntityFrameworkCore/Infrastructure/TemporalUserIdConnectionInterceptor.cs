@@ -14,18 +14,21 @@ namespace PgTemporalTables.EntityFrameworkCore.Infrastructure;
 /// </summary>
 public sealed class TemporalUserIdConnectionInterceptor : DbConnectionInterceptor
 {
+    /// <summary>The singleton instance of this interceptor.</summary>
     public static readonly TemporalUserIdConnectionInterceptor Instance = new();
 
     private TemporalUserIdConnectionInterceptor()
     {
     }
 
+    /// <inheritdoc/>
     public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
     {
         if (ResolveUserId(eventData) is { } userId)
             Execute(connection, SetUserIdSql(userId));
     }
 
+    /// <inheritdoc/>
     public override async Task ConnectionOpenedAsync(DbConnection connection,
         ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {

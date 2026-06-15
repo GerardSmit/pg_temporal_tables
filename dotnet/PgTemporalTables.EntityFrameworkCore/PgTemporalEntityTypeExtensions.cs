@@ -13,6 +13,7 @@ public static class PgTemporalEntityTypeExtensions
     public static bool IsTemporal(this IReadOnlyEntityType entityType)
         => entityType.FindAnnotation(PgTemporalAnnotationNames.IsTemporal)?.Value is true;
 
+    /// <summary>Marks or unmarks the entity's table as tracked by pg_temporal_tables.</summary>
     public static void SetIsTemporal(this IMutableEntityType entityType, bool temporal)
         => entityType.SetAnnotation(PgTemporalAnnotationNames.IsTemporal, temporal);
 
@@ -22,6 +23,7 @@ public static class PgTemporalEntityTypeExtensions
             ? s.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             : [];
 
+    /// <summary>Sets the property or column names to exclude from history tracking.</summary>
     public static void SetTemporalExcludedColumns(this IMutableEntityType entityType,
         IEnumerable<string> propertyOrColumnNames)
         => entityType.SetAnnotation(PgTemporalAnnotationNames.ExcludedColumns,
@@ -38,6 +40,7 @@ public static class PgTemporalEntityTypeExtensions
         return value is string s ? TimeSpan.Parse(s, CultureInfo.InvariantCulture) : null;
     }
 
+    /// <summary>Sets the combine interval for this entity's temporal history table.</summary>
     public static void SetTemporalCombineInterval(this IMutableEntityType entityType, TimeSpan? interval)
         => entityType.SetAnnotation(PgTemporalAnnotationNames.CombineInterval,
             interval?.ToString("c"));
@@ -46,6 +49,7 @@ public static class PgTemporalEntityTypeExtensions
     public static bool GetTemporalIncludeIndexes(this IReadOnlyEntityType entityType)
         => entityType.FindAnnotation(PgTemporalAnnotationNames.IncludeIndexes)?.Value is true;
 
+    /// <summary>Sets whether base-table indexes should be mirrored onto the history table.</summary>
     public static void SetTemporalIncludeIndexes(this IMutableEntityType entityType, bool include)
         => entityType.SetAnnotation(PgTemporalAnnotationNames.IncludeIndexes, include);
 
@@ -53,6 +57,7 @@ public static class PgTemporalEntityTypeExtensions
     public static string? GetTemporalHistoryTableName(this IReadOnlyEntityType entityType)
         => entityType.FindAnnotation(PgTemporalAnnotationNames.HistoryTableName)?.Value as string;
 
+    /// <summary>Sets an explicit history table name, overriding the default <c>&lt;table&gt;__history</c> naming.</summary>
     public static void SetTemporalHistoryTableName(this IMutableEntityType entityType, string? name)
         => entityType.SetAnnotation(PgTemporalAnnotationNames.HistoryTableName, name);
 }
