@@ -1,0 +1,35 @@
+ARG BASE_IMAGE=postgres:18
+ARG PG_MAJOR=18
+
+FROM ${BASE_IMAGE} AS build
+
+ARG PG_MAJOR
+
+RUN apt-get update -qq \
+    && apt-get install -y -qq --no-install-recommends \
+        postgresql-server-dev-${PG_MAJOR} \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+COPY Makefile pg_temporal_tables.control ./
+COPY src ./src
+COPY sql ./sql
+
+RUN make -j"$(nproc)" && make install
+
+# ---- runtime ----
+FROM ${BASE_IMAGE}
+
+ARG PG_MAJOR
+
+RUN apt-get update -qq \
+    && apt-get install -y -qq --no-install-recommends \
+        postgresql-${PG_MAJOR}-pgvector \
+        postgresql-${PG_MAJOR}-timescaledb \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /usr/lib/postgresql/${PG_MAJOR}/lib/pg_temporal_tables.so \
+     /usr/lib/postgresql/${PG_MAJOR}/lib/
+COPY --from=build /usr/share/postgresql/${PG_MAJOR}/extension/pg_temporal_tables* \
+     /usr/share/postgresql/${PG_MAJOR}/extension/

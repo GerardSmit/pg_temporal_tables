@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>PgTemporalTables.EntityFrameworkCore</RootNamespace>
+    <AssemblyName>PgTemporalTables.EntityFrameworkCore</AssemblyName>
+    <Description>EF Core integration for the pg_temporal_tables PostgreSQL extension: IsTemporal() model configuration, temporal.user_id attribution, transparent AS OF time travel and SQL Server-style Temporal* query operators.</Description>
+    <PackageId>PgTemporalTables.EntityFrameworkCore</PackageId>
+    <Version>0.1.0</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);EF1001</NoWarn> <!-- Npgsql annotation provider lives in an Internal namespace; risk documented -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+  </ItemGroup>
+
+</Project>

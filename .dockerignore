@@ -1,0 +1,6 @@
+.git
+tests
+*.md
+.github
+**/*.o
+**/*.so

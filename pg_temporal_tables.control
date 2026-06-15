@@ -1,0 +1,6 @@
+comment = 'SQL Server-style temporal tables with user-change tracking and transparent AS OF time travel'
+default_version = '0.1.0'
+module_pathname = '$libdir/pg_temporal_tables'
+relocatable = false
+schema = temporal
+superuser = true

@@ -1,0 +1,15 @@
+# C extension build output
+*.o
+*.so
+*.bc
+.deps/
+results/
+regression.*
+
+# .NET build output
+**/bin/
+**/obj/
+
+# IDE
+.vs/
+.idea/
