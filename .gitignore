@@ -6,6 +6,14 @@
 results/
 regression.*
 
+# Windows MSVC build output
+*.obj
+*.dll
+*.exp
+*.lib
+*.pdb
+build_win/
+
 # .NET build output
 **/bin/
 **/obj/
