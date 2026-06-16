@@ -1,0 +1,2 @@
+-- pg_temporal_tables 0.1.0 --> 0.1.1
+-- No schema changes in this release.

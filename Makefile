@@ -1,7 +1,8 @@
 EXTENSION = pg_temporal_tables
-EXTVERSION = 0.1.0
+EXTVERSION = 0.1.1
 
-DATA = sql/pg_temporal_tables--$(EXTVERSION).sql
+DATA = sql/pg_temporal_tables--$(EXTVERSION).sql \
+	sql/pg_temporal_tables--0.1.0--0.1.1.sql
 
 MODULE_big = pg_temporal_tables
 OBJS = \

@@ -9,7 +9,8 @@
     <AssemblyName>PgTemporalTables.EntityFrameworkCore</AssemblyName>
     <Description>EF Core integration for the pg_temporal_tables PostgreSQL extension: IsTemporal() model configuration, temporal.user_id attribution, transparent AS OF time travel and SQL Server-style Temporal* query operators.</Description>
     <PackageId>PgTemporalTables.EntityFrameworkCore</PackageId>
-    <Version>0.1.0</Version>
+    <!-- Single source of truth: pg_temporal_tables.control default_version -->
+    <Version>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\..\pg_temporal_tables.control')), "default_version\s*=\s*'([^']+)'").Groups[1].Value)</Version>
     <Authors>Gerard Smit</Authors>
     <PackageProjectUrl>https://github.com/GerardSmit/pg_temporal_tables</PackageProjectUrl>
     <RepositoryUrl>https://github.com/GerardSmit/pg_temporal_tables</RepositoryUrl>

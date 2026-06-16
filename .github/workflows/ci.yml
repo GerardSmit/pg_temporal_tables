@@ -204,7 +204,6 @@ jobs:
         run: |
           dotnet pack dotnet/PgTemporalTables.EntityFrameworkCore/PgTemporalTables.EntityFrameworkCore.csproj \
             -c Release \
-            -p:Version=${{ steps.version.outputs.version }} \
             -o "$PWD/nuget"
           dotnet nuget push "nuget/*.nupkg" \
             --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" \
