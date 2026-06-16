@@ -10,12 +10,26 @@
     <Description>EF Core integration for the pg_temporal_tables PostgreSQL extension: IsTemporal() model configuration, temporal.user_id attribution, transparent AS OF time travel and SQL Server-style Temporal* query operators.</Description>
     <PackageId>PgTemporalTables.EntityFrameworkCore</PackageId>
     <Version>0.1.0</Version>
+    <Authors>Gerard Smit</Authors>
+    <PackageProjectUrl>https://github.com/GerardSmit/pg_temporal_tables</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/GerardSmit/pg_temporal_tables</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>postgresql;efcore;temporal;system-versioned;npgsql;audit</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);EF1001</NoWarn> <!-- Npgsql annotation provider lives in an Internal namespace; risk documented -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
